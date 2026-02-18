@@ -77,22 +77,43 @@ FROM (
 |-----------------------:|-------------:|-------------:|------------------:|
 |                    5.4 |            1 |           14 |              5.65 |
 
-## Q14: Which genres have more than 100 tracks but sold fewer than 50?
+## Q14: Which genres sell the smallest share of their catalogue? (genres with 20+ tracks)
 
 ```sql
 SELECT g.Name AS genre,
-       COUNT(DISTINCT t.TrackId)          AS tracks_in_catalog,
-       COALESCE(SUM(il.Quantity), 0)      AS units_sold
+       COUNT(DISTINCT t.TrackId)  AS tracks_in_catalog,
+       COUNT(DISTINCT il.TrackId) AS tracks_ever_sold,
+       ROUND(100.0 * COUNT(DISTINCT il.TrackId) / COUNT(DISTINCT t.TrackId), 1) AS pct_sold
 FROM Genre g
 JOIN Track t ON t.GenreId = g.GenreId
 LEFT JOIN InvoiceLine il ON il.TrackId = t.TrackId
 GROUP BY g.GenreId, g.Name
-HAVING COUNT(DISTINCT t.TrackId) > 100 AND COALESCE(SUM(il.Quantity), 0) < 50
-ORDER BY tracks_in_catalog DESC;
+HAVING COUNT(DISTINCT t.TrackId) >= 20
+ORDER BY pct_sold;
 ```
 
-| genre   | tracks_in_catalog   | units_sold   |
-|---------|---------------------|--------------|
+| genre              |   tracks_in_catalog |   tracks_ever_sold |   pct_sold |
+|:-------------------|--------------------:|-------------------:|-----------:|
+| Alternative        |                  40 |                 14 |       35   |
+| Electronica/Dance  |                  30 |                 11 |       36.7 |
+| Easy Listening     |                  24 |                 10 |       41.7 |
+| Drama              |                  64 |                 27 |       42.2 |
+| Heavy Metal        |                  28 |                 12 |       42.9 |
+| Hip Hop/Rap        |                  35 |                 15 |       42.9 |
+| Soundtrack         |                  43 |                 19 |       44.2 |
+| TV Shows           |                  93 |                 43 |       46.2 |
+| World              |                  28 |                 13 |       46.4 |
+| Reggae             |                  58 |                 28 |       48.3 |
+| Classical          |                  74 |                 36 |       48.6 |
+| Jazz               |                 130 |                 68 |       52.3 |
+| Pop                |                  48 |                 26 |       54.2 |
+| Rock               |                1297 |                745 |       57.4 |
+| Latin              |                 579 |                340 |       58.7 |
+| R&B/Soul           |                  61 |                 37 |       60.7 |
+| Alternative & Punk |                 332 |                203 |       61.1 |
+| Metal              |                 374 |                231 |       61.8 |
+| Blues              |                  81 |                 53 |       65.4 |
+| Sci Fi & Fantasy   |                  26 |                 20 |       76.9 |
 
 ## Q15: Which day of the week gets the most orders?
 

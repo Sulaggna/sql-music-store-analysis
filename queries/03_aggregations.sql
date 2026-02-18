@@ -43,16 +43,17 @@ FROM (
     GROUP BY i.InvoiceId, i.Total
 ) per_order;
 
--- Q14: Which genres have more than 100 tracks but sold fewer than 50?
+-- Q14: Which genres sell the smallest share of their catalogue? (genres with 20+ tracks)
 SELECT g.Name AS genre,
-       COUNT(DISTINCT t.TrackId)          AS tracks_in_catalog,
-       COALESCE(SUM(il.Quantity), 0)      AS units_sold
+       COUNT(DISTINCT t.TrackId)  AS tracks_in_catalog,
+       COUNT(DISTINCT il.TrackId) AS tracks_ever_sold,
+       ROUND(100.0 * COUNT(DISTINCT il.TrackId) / COUNT(DISTINCT t.TrackId), 1) AS pct_sold
 FROM Genre g
 JOIN Track t ON t.GenreId = g.GenreId
 LEFT JOIN InvoiceLine il ON il.TrackId = t.TrackId
 GROUP BY g.GenreId, g.Name
-HAVING COUNT(DISTINCT t.TrackId) > 100 AND COALESCE(SUM(il.Quantity), 0) < 50
-ORDER BY tracks_in_catalog DESC;
+HAVING COUNT(DISTINCT t.TrackId) >= 20
+ORDER BY pct_sold;
 
 -- Q15: Which day of the week gets the most orders?
 SELECT CASE strftime('%w', InvoiceDate)
